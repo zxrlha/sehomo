@@ -42,13 +42,11 @@ public:
     const std::vector<std::vector<double>>& solutions() const { return _v_solutions; }
 protected:
     void set_z(const std::vector<double>& z);
-    void set_z(const Eigen::VectorXd& z);
     void calculate_H(double t);
     void calculate_M(double t);
     void calculate_F(double t);
 
     void calculate_dzdt(std::vector<double>& dzdt);
-    void calculate_dzdt(Eigen::VectorXd& dzdt);
 
     void solve_through_soft_limit(const std::vector<double>& vns);
     std::vector<double> solve_soft_equation(const std::vector<double>& vns);
@@ -66,7 +64,7 @@ protected:
     //Eigen::MatrixXd _H;
     Eigen::VectorXd _M;
     Eigen::VectorXd _F;
-    Eigen::VectorXd _z_gf;//the (n-2) gauge-fixed z
+    std::vector<double> _z_gf;//the (n-2) gauge-fixed z
 };
 
 #endif

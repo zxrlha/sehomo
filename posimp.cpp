@@ -19,12 +19,8 @@ void posimp::set_z(const std::vector<double>& z)
 {
     for (size_t i = 0; i < _n - 3; ++i)
     {
-        _z_gf(i) = z[i];
+        _z_gf[i] = z[i];
     }
-}
-void posimp::set_z(const Eigen::VectorXd& z)
-{
-    _z_gf = z;
 }
 
 void posimp::calculate_H(double t)
@@ -103,16 +99,11 @@ void posimp::calculate_F(double t)
     _F(_n - 2) = sum;
 }
 
-void posimp::calculate_dzdt(Eigen::VectorXd& dzdt)
-{
-    //NOTE: using inplace decomposition wouldn't improve performance, since it is a small matrix
-    dzdt = _H.colPivHouseholderQr().solve(_M);
-}
 void posimp::calculate_dzdt(std::vector<double>& dzdt)
 {
     //NOTE: using inplace decomposition wouldn't improve performance, since it is a small matrix
-    Eigen::VectorXd tmp;
-    calculate_dzdt(tmp);
+    Eigen::VectorXd tmp = _H.colPivHouseholderQr().solve(_M);
+    //Eigen::VectorXd tmp = _H.fullPivLu().solve(_M);
     dzdt.resize(_n - 3);
     for (size_t i = 0; i < _n - 3; ++i)
     {
@@ -161,7 +152,7 @@ void posimp::solve_through_soft_limit(const std::vector<double>& vns)
         for (size_t i = 0; i < nsteps; ++i)
         {
             solve_homotopy_continuation(vtmp, double(i) / nsteps, double(i + 1) / nsteps);
-            //solve_newton_raphson(vtmp, double(i + 1) / nsteps);
+            solve_newton_raphson(vtmp, double(i + 1) / nsteps);
         }
         _v_solutions.push_back(std::move(vtmp));
     }
@@ -188,8 +179,7 @@ void posimp::solve_newton_raphson(std::vector<double>& z, double t)
 
 void posimp::solve_homotopy_continuation(std::vector<double>& z, double t0, double t1)
 {
-    //using state_type = std::vector<double>;
-    using state_type = Eigen::VectorXd;
+    using state_type = std::vector<double>;
     auto difffunc = [this](const state_type & z, state_type & dzdt, double t)
     {
         this->set_z(z);
@@ -224,7 +214,6 @@ void posimp::solve_homotopy_continuation(std::vector<double>& z, double t0, doub
         std::cout << z[i] << " ";
     }
     std::cout << std::endl;
-    /*
     set_z(z);
     calculate_F(1);
     std::cout << "F:";
@@ -233,7 +222,6 @@ void posimp::solve_homotopy_continuation(std::vector<double>& z, double t0, doub
         std::cout << _F(i) << " ";
     }
     std::cout << std::endl;
-    */
 }
 
 std::vector<double> posimp::solve_soft_equation(const std::vector<double>& vss)
