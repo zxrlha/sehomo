@@ -6,6 +6,7 @@ namespace odeint = boost::numeric::odeint;
 
 void posimp::init(std::vector<double>&& vkin)
 {
+    assert(vkin.size() == (_n - 1) * (_n - 2) / 2);
     _v = std::move(vkin);
     double sum = 0;
     for (int i = 1; i < (_n - 2) * (_n - 3) / 2; ++i)
@@ -72,6 +73,7 @@ void posimp::calculate_M(double t)
     }
     _M(0) += -s(0, 1) + _sAB0;
     _M(1) += s(0, 1) - _sAB0;
+    _M(_n - 2) = 0;
 }
 
 void posimp::calculate_F(double t)
@@ -189,25 +191,26 @@ void posimp::solve_homotopy_continuation(std::vector<double>& z, double t0, doub
     };
     auto integrator = odeint::make_controlled<odeint::runge_kutta_fehlberg78<state_type>>(0.0, 1e-15);
     //check initial condition
-    /*
+#if 0
     for (size_t i = 0; i < z.size(); ++i)
     {
         std::cout << z[i] << " ";
     }
     std::cout << std::endl;
     set_z(z);
-    calculate_F(0);
+    calculate_F(t0);
     std::cout << "F:";
     for (size_t i = 0; i < _F.size(); ++i)
     {
         std::cout << _F(i) << " ";
     }
     std::cout << std::endl;
-    */
+#endif
     //do integration
     size_t steps = odeint::integrate_adaptive(integrator, difffunc,
                    z, t0, t1, 0.001);
     //check after DE
+#if 0
     std::cout << steps << " ";
     for (size_t i = 0; i < z.size(); ++i)
     {
@@ -215,13 +218,14 @@ void posimp::solve_homotopy_continuation(std::vector<double>& z, double t0, doub
     }
     std::cout << std::endl;
     set_z(z);
-    calculate_F(1);
+    calculate_F(t1);
     std::cout << "F:";
     for (size_t i = 0; i < _F.size(); ++i)
     {
         std::cout << _F(i) << " ";
     }
     std::cout << std::endl;
+#endif
 }
 
 std::vector<double> posimp::solve_soft_equation(const std::vector<double>& vss)
