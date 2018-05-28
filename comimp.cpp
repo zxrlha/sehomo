@@ -1,61 +1,39 @@
 #include <boost/numeric/odeint.hpp>
-#include <wat/solve.hpp>
-#include "lastimp.hpp"
+#include "comimp.hpp"
 #include "posimp.hpp"
 
 namespace odeint = boost::numeric::odeint;
 
 using namespace std::literals::complex_literals;
 
-void lastimp::init(std::vector<double>&& vkin, std::vector<double>&& v0kin)
+void comimp::init(std::vector<double>&& vkin, std::vector<double>&& v0kin)
 {
-    //First calculate t1
-    std::vector<double> vt1;
-    for (size_t i = 2; i <= _n - 2; ++i)
-    {
-        size_t index = i * (i - 1) / 2;
-        double t1 = v0kin[index] / (v0kin[index] - vkin[index]);
-        vt1.push_back(t1);
-        std::cerr << "T1: " << t1 << " ";
-    }
-    double sBC0 = -v0kin[0];
-    double sBC = -vkin[0];
-    for (size_t i = 2; i <= _n - 2; ++i)
-    {
-        size_t index = i * (i - 1) / 2 + 1;
-        sBC0 -= v0kin[index];
-        sBC -= vkin[index];
-    }
-    std::cerr << sBC0 / (sBC0 - sBC) << std::endl;
-    vt1.push_back(sBC0 / (sBC0 - sBC));
-    std::sort(vt1.begin(), vt1.end());
-    double t1max = vt1.back();
-    double t1min = vt1[0];
-    double r = sqrt(((1 - t1max) * (1 - t1min)) / (t1max * t1min));
-    r=(1-t1min)/t1min/2;
-    //get new t1max and t1min
-    t1max = r * t1max / (1 + t1max * (r - 1));
-    t1min = r * t1min / (1 + t1min * (r - 1));
-    std::cerr << "T R:" << t1max << " " << t1min << " " << r << std::endl;
-    double im = std::pow(t1min, 1.0 / 3) * std::pow(1 - t1min, 2.0 / 3);
     _vmt.clear();
     _vmt.push_back(0.0);
-    _vmt.push_back(std::complex<double>(t1min, im));
-    _vmt.push_back(std::complex<double>(t1max, im));
+    _vmt.push_back(std::complex<double>(0.5,0.5));
     _vmt.push_back(1.0);
     _v0 = std::move(v0kin);
-    for (size_t i = 0; i < _v0.size(); ++i)
+    //we try to matching the overall scale
+    //using L1 norm
+    double ss = 0;
+    double ss0 = 0;
+    for (size_t i = 0; i < vkin.size(); ++i)
     {
-        _v0[i] *= r;
+        ss += std::abs(vkin[i]);
+        ss0 += std::abs(_v0[i]);
     }
+    //std::cout<<ss<<" "<<ss0<<std::endl;
+    double r = ss0 / ss;
     _vc = std::move(vkin);
     for (size_t i = 0; i < _vc.size(); ++i)
     {
+        _vc[i] *= r;
+        //std::cout<<_vc[i]<<" "<<r<<" "<<_v0[i]<<std::endl;
         _vc[i] -= _v0[i];
     }
 }
 
-void lastimp::set_z(const std::vector<std::complex<double>>& z)
+void comimp::set_z(const std::vector<std::complex<double>>& z)
 {
     for (size_t i = 0; i < _n - 3; ++i)
     {
@@ -63,7 +41,7 @@ void lastimp::set_z(const std::vector<std::complex<double>>& z)
     }
 }
 
-void lastimp::calculate_H(const std::complex<double>& t)
+void comimp::calculate_H(const std::complex<double>& t)
 {
     for (size_t i = 0; i <= _n - 2; ++i)
     {
@@ -84,7 +62,7 @@ void lastimp::calculate_H(const std::complex<double>& t)
     }
 }
 
-void lastimp::calculate_M(const std::complex<double>& t)
+void comimp::calculate_M(const std::complex<double>& t)
 {
     for (size_t i = 0; i <= _n - 2; ++i)
     {
@@ -100,7 +78,7 @@ void lastimp::calculate_M(const std::complex<double>& t)
     }
 }
 
-void lastimp::calculate_F(const std::complex<double>& t)
+void comimp::calculate_F(const std::complex<double>& t)
 {
     for (size_t i = 0; i <= _n - 2; ++i)
     {
@@ -116,7 +94,7 @@ void lastimp::calculate_F(const std::complex<double>& t)
     }
 }
 
-void lastimp::calculate_dzdt(std::vector<std::complex<double>>& dzdt)
+void comimp::calculate_dzdt(std::vector<std::complex<double>>& dzdt)
 {
     //NOTE: using inplace decomposition wouldn't improve performance, since it is a small matrix
     Eigen::VectorXcd tmp = _H.fullPivHouseholderQr().solve(_M);
@@ -131,7 +109,7 @@ void lastimp::calculate_dzdt(std::vector<std::complex<double>>& dzdt)
     }
 }
 
-void lastimp::solve()
+void comimp::solve()
 {
     posimp nps(_n);
     nps.init(std::vector<double>(_v0));
@@ -153,7 +131,7 @@ void lastimp::solve()
     }
 }
 
-void lastimp::solve_newton_raphson(std::vector<std::complex<double>>& z, const std::complex<double>& t)
+void comimp::solve_newton_raphson(std::vector<std::complex<double>>& z, const std::complex<double>& t)
 {
     double max_error = 1e-15;
     bool flag = true;
@@ -172,7 +150,7 @@ void lastimp::solve_newton_raphson(std::vector<std::complex<double>>& z, const s
     }
 }
 
-void lastimp::solve_homotopy_continuation(std::vector<std::complex<double>>& z, const std::complex<double>& t0, const std::complex<double>& t1)
+void comimp::solve_homotopy_continuation(std::vector<std::complex<double>>& z, const std::complex<double>& t0, const std::complex<double>& t1)
 {
     using state_type = std::vector<std::complex<double>>;
     auto difffunc = [this, t0, t1](const state_type & z, state_type & dzdt, double tpara)

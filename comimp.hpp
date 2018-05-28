@@ -1,15 +1,15 @@
-#ifndef _NUMCHY_LASTIMP_HPP
-#define _NUMCHY_LASTIMP_HPP 11
+#ifndef _NUMCHY_COMIMP_HPP
+#define _NUMCHY_COMIMP_HPP 11
 
 #include <cassert>
 #include <vector>
 #include <complex>
 #include <Eigen/Dense>
 
-class lastimp
+class comimp
 {
 public:
-    lastimp(size_t n)
+    comimp(size_t n)
         : _H(n - 1, n - 3), _M(n - 1), _F(n - 1), _z_gf(n - 3),  _v0((n - 1) * (n - 2) / 2), _vc((n - 1) * (n - 2) / 2)
     {
         _n = n;

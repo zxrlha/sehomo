@@ -1,0 +1,5 @@
+run_phy
+prep_ic
+*.o
+*log
+ic-*

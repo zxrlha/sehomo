@@ -1,5 +1,5 @@
 #include <boost/numeric/odeint.hpp>
-#include <wat/solve.hpp>
+#include <boost/math/tools/roots.hpp>
 #include "posimp.hpp"
 
 namespace odeint = boost::numeric::odeint;
@@ -249,8 +249,13 @@ std::vector<double> posimp::solve_soft_equation(const std::vector<double>& vss)
             }
             return sum;
         };
-        double z = wat::solve_brent(func, vtmp[i] + 1e-7, vtmp[i + 1] - 1e-7, 1e-16);
-        res.push_back(z);
+        auto interval = boost::math::tools::bisect(func, vtmp[i] + 1e-7, vtmp[i + 1] - 1e-7, [](double a, double b)
+        {
+            return b - a < 1e-16;
+        }
+                                                  );
+        double midpoint = (interval.first + interval.second) / 2.0;
+        res.push_back(midpoint);
     }
     return std::move(res);
 }
