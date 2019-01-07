@@ -8,16 +8,17 @@
 
 using namespace std;
 
+//Calculating n-point physical kinematics, using initial condition given in file "ic-*"
 void test_phyimp(int n)
 {
     phyimp tpi;
     {
+        //reading the initial condition
         std::ifstream ifs("ic-" + boost::lexical_cast<std::string>(n));
         boost::archive::binary_iarchive ia(ifs);
         ia >> tpi;
     }
     std::mt19937 eng(std::random_device{}());
-    //std::mt19937 eng;
     std::uniform_real_distribution<double> urd(0, 1);
     //Part 1: generate a new physical kinematics
     std::vector<L4v<double>> p(n);
@@ -40,7 +41,6 @@ void test_phyimp(int n)
         {
             for (size_t j = 0; j < i; ++j)
             {
-                //E_1E_2(1-cos(theta))=p_1 dot p_2
                 minv = std::min(minv, (std::abs(dot_product(p[i], p[j]) / p[i][0] / p[j][0])));
             }
         }
@@ -60,7 +60,6 @@ void test_phyimp(int n)
             sum += tmp;
         }
     }
-    //std::cout << "SUM:" << sum << std::endl;
     tpi.set(std::move(sij));
     std::vector<std::complex<double>> res;
     timer ti;
@@ -68,12 +67,15 @@ void test_phyimp(int n)
     for (size_t j = 0; j < nsol; ++j)
     {
         tpi.solve(j, res);
+        ti.stop();
+        std::cout<<"Step 2:"<<j+1<<" solutions obtained in "<<ti.time()<<"s\r";
     }
+    std::cout<<std::endl;
     ti.stop();
-    std::cout<<"total: "<<ti.time()<<"s"<<std::endl;
 }
 int main()
 {
+    //Calculating a random chosen 9-point physical kinematics corresponding to 2->7 scattering
     test_phyimp(9);
     return 0;
 }

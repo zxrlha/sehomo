@@ -89,7 +89,7 @@ void comimp::calculate_F(const std::complex<double>& t)
             if (j != i)
             {
                 //Currently, the high precision requirement(10^-15) demand extended arithmetics(long double) to ensure good accuracy on F.
-                sum += static_cast<std::complex<long double>>(s0(i, j) + t * c(i, j)) / static_cast<std::complex<long double>>(z(i) - z(j));
+                sum += (static_cast<std::complex<long double>>(s0(i, j)) + static_cast<std::complex<long double>>(t) * static_cast<std::complex<long double>>(c(i, j))) / (static_cast<std::complex<long double>>(z(i)) - static_cast<std::complex<long double>>(z(j)));
                 //sum += (s0(i, j) + t * c(i, j)) / (z(i) - z(j));
             }
         }

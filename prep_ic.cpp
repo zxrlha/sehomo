@@ -10,6 +10,7 @@
 
 using namespace std;
 
+//Preparing initial condition for n-point kinematics
 void prep_ic(int n)
 {
     std::mt19937 eng(std::random_device{}());
@@ -85,9 +86,7 @@ void prep_ic(int n)
 }
 int main()
 {
-    for (int n = 5; n <= 9; ++n)
-    {
-        prep_ic(n);
-    }
+    //Preparing inital condition for 9-point scattering
+    prep_ic(9);
     return 0;
 }
