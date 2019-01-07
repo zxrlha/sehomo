@@ -1,15 +1,26 @@
+This is an implementation for the algorithm presented in arXiv:1810.00384(https://arxiv.org/abs/1810.00384)
 
-external dependency:
+For the algorithm, please
+General information:
+
+Download:
+You can download it directly using git:
+git clone https://github.com/zxrlha/sehomo.git
+
+External Dependency:
     1.Eigen library(http://eigen.tuxfamily.org)
     2.boost library(https://boost.org)
+
 LICENSE: GNU GPL v3 or later(see "COPYING" for detail)
 
-momentum.hpp: the momentum class
+Code explanation:
+
+momentum.hpp: the class which represents four-momentum
 finalstate.hpp: generating phasespace for 2->(n-2) scattering
-timer.hpp and timer.cpp: timing
-posimp.hpp and posimp.cpp: implementation on soft limit in positive kinematics
-comimp.hpp and comimp.cpp: implementation from positive kinematics to physical kinematics, with complex t
-phyimp.hpp and phyimp.cpp: implementation from physical kinematics to physical kinematics(the last step)
-prep_ic.cpp: preparing the initial condition for one physical point
-calc_phys.cpp: calculating points in physical region
+timer.hpp and timer.cpp: the class for timing
+posimp.hpp and posimp.cpp: implementation on soft limit in positive kinematics(Step 1.1)
+comimp.hpp and comimp.cpp: implementation from positive kinematics to physical kinematics, with complex t(Step 1.2)
+phyimp.hpp and phyimp.cpp: implementation from physical kinematics to physical kinematics(Step 2)
+prep_ic.cpp: preparing the initial condition for one physical point(i.e. Step 1.1 and 1.2)
+calc_phys.cpp: calculating points in physical region using the previous generated initial condition(i.e. Step 2)
 solutions: the file which storing the initial condition calculated by prep_ic, and will be read by calc_phys.

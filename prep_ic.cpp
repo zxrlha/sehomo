@@ -12,8 +12,8 @@ using namespace std;
 
 void prep_ic(int n)
 {
-    //std::mt19937 eng(std::random_device{}());
-    std::mt19937 eng;
+    std::mt19937 eng(std::random_device{}());
+    //std::mt19937 eng;
     std::uniform_real_distribution<double> urd(0, 1);
     //Part 1: generate the K+ kinematics
     vector<double> v0((n - 1) * (n - 2) / 2);
@@ -87,6 +87,8 @@ void prep_ic(int n)
 int main()
 {
     for (int n = 5; n <= 9; ++n)
-    prep_ic(n);
+    {
+        prep_ic(n);
+    }
     return 0;
 }
