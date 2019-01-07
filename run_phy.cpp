@@ -13,7 +13,7 @@ void test_phyimp(int n)
     phyimp tpi;
     {
         std::ifstream ifs("ic-" + boost::lexical_cast<std::string>(n));
-        boost::archive::text_iarchive ia(ifs);
+        boost::archive::binary_iarchive ia(ifs);
         ia >> tpi;
     }
     std::mt19937 eng(std::random_device{}());

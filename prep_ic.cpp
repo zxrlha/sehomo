@@ -13,7 +13,6 @@ using namespace std;
 void prep_ic(int n)
 {
     std::mt19937 eng(std::random_device{}());
-    //std::mt19937 eng;
     std::uniform_real_distribution<double> urd(0, 1);
     //Part 1: generate the K+ kinematics
     vector<double> v0((n - 1) * (n - 2) / 2);
@@ -73,7 +72,7 @@ void prep_ic(int n)
             sum += tmp;
         }
     }
-    std::cout << "SUM:" << sum << std::endl;
+    //std::cout << "SUM:" << sum << std::endl;
     comimp lps(n);
     auto tv = sij;
     lps.init(std::move(sij), std::move(v0));
@@ -81,7 +80,7 @@ void prep_ic(int n)
     phyimp tp;
     tp.set_init_condition(n, tv, lps.solutions());
     std::ofstream ofs("ic-" + boost::lexical_cast<std::string>(n));
-    boost::archive::text_oarchive oa(ofs);
+    boost::archive::binary_oarchive oa(ofs);
     oa << tp;
 }
 int main()

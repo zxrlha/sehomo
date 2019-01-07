@@ -1,4 +1,5 @@
 #include <boost/numeric/odeint.hpp>
+#include "timer.hpp"
 #include "comimp.hpp"
 #include "posimp.hpp"
 
@@ -82,12 +83,14 @@ void comimp::calculate_F(const std::complex<double>& t)
 {
     for (size_t i = 0; i <= _n - 2; ++i)
     {
-        std::complex<double> sum = 0;
+        std::complex<long double> sum = 0;
         for (size_t j = 0; j <= _n - 2; ++j)
         {
             if (j != i)
             {
-                sum += (s0(i, j) + t * c(i, j)) / (z(i) - z(j));
+                //Currently, the high precision requirement(10^-15) demand extended arithmetics(long double) to ensure good accuracy on F.
+                sum += static_cast<std::complex<long double>>(s0(i, j) + t * c(i, j)) / static_cast<std::complex<long double>>(z(i) - z(j));
+                //sum += (s0(i, j) + t * c(i, j)) / (z(i) - z(j));
             }
         }
         _F(i) = sum;
@@ -96,12 +99,7 @@ void comimp::calculate_F(const std::complex<double>& t)
 
 void comimp::calculate_dzdt(std::vector<std::complex<double>>& dzdt)
 {
-    //NOTE: using inplace decomposition wouldn't improve performance, since it is a small matrix
-    Eigen::VectorXcd tmp = _H.fullPivHouseholderQr().solve(_M);
-    //Eigen::VectorXcd tmp = _H.colPivHouseholderQr().solve(_M);
-    //auto adjH = _H.adjoint();
-    //Eigen::VectorXcd tmp = (adjH * _H).fullPivLu().solve(adjH * _M);
-    //Eigen::VectorXcd tmp = (adjH * _H).llt().solve(adjH * _M);
+    Eigen::VectorXcd tmp = _H.colPivHouseholderQr().solve(_M);
     dzdt.resize(_n - 3);
     for (size_t i = 0; i < _n - 3; ++i)
     {
@@ -111,10 +109,16 @@ void comimp::calculate_dzdt(std::vector<std::complex<double>>& dzdt)
 
 void comimp::solve()
 {
+    std::cout<<"Preparing initial condition for "<<_n<<"-point kinematics."<<std::endl;
     posimp nps(_n);
+	timer ti;
+	ti.start();
     nps.init(std::vector<double>(_v0));
     nps.solve();
+	ti.stop();
+	std::cout<<"Step 1.1 Finished in "<<ti.time()<<"s."<<std::endl;
     //iterate over solutions
+	ti.start();
     for (size_t i = 0; i < nps.solutions().size(); ++i)
     {
         std::vector<std::complex<double>> sol;
@@ -128,7 +132,10 @@ void comimp::solve()
             solve_newton_raphson(sol, _vmt[mi + 1]);
         }
         _v_solutions.push_back(sol);
+		ti.stop();
+		std::cout<<"Step 1.2: "<<i+1<<" solutions obtained in "<<ti.time()<<"s.\r";
     }
+	std::cout<<std::endl;
 }
 
 void comimp::solve_newton_raphson(std::vector<std::complex<double>>& z, const std::complex<double>& t)
@@ -140,11 +147,13 @@ void comimp::solve_newton_raphson(std::vector<std::complex<double>>& z, const st
         this->set_z(z);
         this->calculate_F(t);
         this->calculate_H(t);
-        Eigen::VectorXcd delta = _H.fullPivLu().solve(_F);
+        Eigen::VectorXcd delta = _H.colPivHouseholderQr().solve(_F);
         flag = false;
+        //std::cout.precision(17);
         for (size_t i = 0; i < z.size(); ++i)
         {
             z[i] += delta(i);
+            //std::cout<<i<<" "<<delta(i)<<" "<<z[i]<<" "<<_F[i]<<std::endl;
             if (std::abs(delta(i)) / (std::abs(z[i]) + std::abs(delta(i))) > max_error) { flag = true; }
         }
     }
@@ -186,7 +195,7 @@ void comimp::solve_homotopy_continuation(std::vector<std::complex<double>>& z, c
     size_t steps = odeint::integrate_adaptive(integrator, difffunc,
                    z, 0.0, 1.0, 0.001);
     //check after DE
-#if 1
+#if 0
     std::cout << steps << " ";
     for (size_t i = 0; i < z.size(); ++i)
     {

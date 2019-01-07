@@ -1,6 +1,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <boost/math/tools/roots.hpp>
 #include "posimp.hpp"
+#include "timer.hpp"
 
 namespace odeint = boost::numeric::odeint;
 
@@ -103,9 +104,7 @@ void posimp::calculate_F(double t)
 
 void posimp::calculate_dzdt(std::vector<double>& dzdt)
 {
-    //NOTE: using inplace decomposition wouldn't improve performance, since it is a small matrix
     Eigen::VectorXd tmp = _H.colPivHouseholderQr().solve(_M);
-    //Eigen::VectorXd tmp = _H.fullPivLu().solve(_M);
     dzdt.resize(_n - 3);
     for (size_t i = 0; i < _n - 3; ++i)
     {
@@ -121,6 +120,8 @@ void posimp::solve()
     }
     else
     {
+        timer ti;
+        ti.start();
         //first, get kinematics for _n-1 points
         std::vector<double> nv((_n - 2) * (_n - 3) / 2);
         double sum = 0;
@@ -139,6 +140,8 @@ void posimp::solve()
         {
             solve_through_soft_limit(nps.solutions()[i]);
         }
+        ti.stop();
+        //std::cout<<"Step 1.1: "<<_n<<" points done in "<<ti.time()<<"s(accumulated)"<<std::endl;
     }
 }
 
@@ -169,7 +172,7 @@ void posimp::solve_newton_raphson(std::vector<double>& z, double t)
         this->set_z(z);
         this->calculate_F(t);
         this->calculate_H(t);
-        Eigen::VectorXd delta = _H.fullPivLu().solve(_F);
+        Eigen::VectorXd delta = _H.colPivHouseholderQr().solve(_F);
         flag = false;
         for (size_t i = 0; i < z.size(); ++i)
         {
