@@ -111,6 +111,16 @@ void phyimp::solve(int index, std::vector<std::complex<double>>& sol)
     sol = _v0_solutions[index];
     solve_homotopy_continuation(sol, 0.0, 1.0);
     solve_newton_raphson(sol, 1.0);
+    //Explicit check
+#if 0
+    this->calculate_F(1.0);
+    std::cout << "F: ";
+    for (int i = 0; i < _F.size(); ++i)
+    {
+        std::cout << " " << _F[i] ;
+    }
+    std::cout << std::endl;
+#endif
 }
 
 void phyimp::solve_newton_raphson(std::vector<std::complex<double>>& z, double t)

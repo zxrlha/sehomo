@@ -61,17 +61,52 @@ void test_phyimp(int n)
         }
     }
     tpi.set(std::move(sij));
-    std::vector<std::complex<double>> res;
+    std::vector<std::vector<std::complex<double>>> vres(nsol);
     timer ti;
     ti.start();
     for (size_t j = 0; j < nsol; ++j)
     {
-        tpi.solve(j, res);
+        tpi.solve(j, vres[j]);
         ti.stop();
-        std::cout<<"Step 2:"<<j+1<<" solutions obtained in "<<ti.time()<<"s\r";
+        std::cout << "Step 2:" << j + 1 << " solutions obtained in " << ti.time() << "s\r";
     }
-    std::cout<<std::endl;
+    std::cout << std::endl;
     ti.stop();
+    //Now check all solutions are distinct
+    std::sort(vres.begin(), vres.end(), [](const std::vector<std::complex<double>>& a, const std::vector<std::complex<double>>& b)
+    {
+        return a[0].real() < b[0].real();
+    });
+    double maxdiff = 0.0;
+    for (int j = 0; j < nsol; j += 2)
+    {
+        maxdiff = std::max(maxdiff, std::abs(vres[j][0].real() - vres[j + 1][0].real()));
+        maxdiff = std::max(maxdiff, std::abs(vres[j][0].imag() + vres[j + 1][0].imag()));
+    }
+    std::cout << "COMPLEX CONJUGATE CHECK: " << maxdiff << std::endl;
+    double mindiff = 1e10;
+    int mini;
+    for (int j = 0; j < nsol - 2; j += 2)
+    {
+        double diff = std::abs(vres[j][0].real() - vres[j + 2][0].real());
+        if (diff < mindiff)
+        {
+            mindiff = diff;
+            mini = j;
+        }
+    }
+    std::cout << "minimal diff: " << mindiff << std::endl;
+	std::cout.precision(17);
+    for (int i = 0; i < n - 3; ++i)
+    {
+        std::cout << vres[mini][i] << " ";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < n - 3; ++i)
+    {
+        std::cout << vres[mini + 2][i] << " ";
+    }
+    std::cout << std::endl;
 }
 int main()
 {
