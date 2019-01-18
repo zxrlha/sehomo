@@ -25,7 +25,7 @@ Besides basic compiling tool chain, two external packages are required:
 
 For Linux distributions, usually those packages are available from the your package manager.
 
-With those package installed, you can simple type
+With those packages installed, you can simple type
 
 ```Shell
 make
