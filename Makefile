@@ -1,4 +1,4 @@
-CXXFLAGS=`pkg-config eigen3 --cflags` -O2 -mtune=native -march=native -g
+CXXFLAGS=`pkg-config eigen3 --cflags` -O2 -mtune=native -march=native -g -std=c++14
 all:prep_ic run_phy
 prep_ic:posimp.o prep_ic.o comimp.o timer.o
 	g++ -o $@ $^ $(CXXFLAGS) $(LDFLAGS) -lboost_serialization

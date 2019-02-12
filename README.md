@@ -15,8 +15,8 @@ git clone https://github.com/zxrlha/sehomo.git
 
 ## Installation and Running
 
-To compile this package, a C++ compiler with C++11 support is required.
-We recommend [GCC](https://gcc.gnu.org) version 4.9 or later.
+To compile this package, a C++ compiler with C++14 support is required.
+We recommend [GCC](https://gcc.gnu.org) version 5 or later.
 
 Besides basic compiling tool chain, two external packages are required:
 
